@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-
 	"github.com/gorilla/mux"
 )
 
@@ -14,6 +13,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/v1/contants", getContantsHandler).Methods("GET")
 	r.HandleFunc("/api/v1/contants", postContantsHandler).Methods("POST")
+	r.HandleFunc("/api/v1/contants", deleteContantsHandler).Methods("DELETE")
 	http.ListenAndServe(":8080", r)
 }
 
@@ -35,9 +35,25 @@ func postContantsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	id := len(m) + 1
 	cont.Id = id
 	m[id] = cont
+}
+
+func deleteContantsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+    params := mux.Vars(r)
+	inputID := params["Id"]
+	for k, v := range m {
+		if v.Id == j {
+			delete(m, k)
+            w.WriteHeader(http.StatusNoContent)
+            return
+		}
+	}
+
+
 }
 
 type contact struct {
