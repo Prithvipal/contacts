@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -22,8 +23,15 @@ func main() {
 
 func getContantsHandler(w http.ResponseWriter, r *http.Request) {
 	contList := make([]contact, 0)
+	searchKey := r.URL.Query().Get("search")
 	for _, cont := range m {
-		contList = append(contList, cont)
+		if searchKey != "" {
+			if strings.Contains(cont.Name, searchKey) {
+				contList = append(contList, cont)
+			}
+		} else {
+			contList = append(contList, cont)
+		}
 	}
 	data, _ := json.Marshal(contList)
 	w.Header().Set("Content-Type", "application/json")
