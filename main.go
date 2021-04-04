@@ -6,8 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	//"strings"
-
+	"strings"
 	"github.com/gorilla/mux"
 )
 
@@ -15,7 +14,7 @@ var m = make(map[int]contact)
 
 func main() {
 	r := mux.NewRouter()
-	//r.HandleFunc("/api/v1/contants", getContantsHandler).Methods("GET")
+	r.HandleFunc("/api/v1/contants", getContantsHandler).Methods("GET")
 	r.HandleFunc("/api/v1/contants", postContantsHandler).Methods("POST")
 	r.HandleFunc("/api/v1/contants/{id}", deleteContantsHandler).Methods("DELETE")
 	r.HandleFunc("/api/v1/contants/{id}", getByIdContantsHandler).Methods("GET")
@@ -34,7 +33,7 @@ func getByIdContantsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
-	_, ok := m[contantID]
+	cont, ok := m[contantID]
 	if !ok {
 		errMsg := fmt.Sprintf("Could not found contant: %v. Is it not present?", id)
 		log.Println(errMsg)
@@ -42,7 +41,6 @@ func getByIdContantsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	var cont contact = m[contantID]
 	 data, _ := json.Marshal(cont)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
@@ -59,14 +57,6 @@ func putContantsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusBadRequest)
 		return
 	}
-
-	_, ok := m[contantID]
-	if !ok {
-		errMsg := fmt.Sprintf("Could not found contant: %v. Is it not present?", id)
-		log.Println(errMsg)
-		http.Error(w, errMsg, http.StatusGone)
-		return
-	}
 	var cont contact
 	errr := json.NewDecoder(r.Body).Decode(&cont)
 	if errr != nil {
@@ -74,29 +64,37 @@ func putContantsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	m[contantID]=cont
+	_, ok := m[contantID]
+	if !ok {
+		errMsg := fmt.Sprintf("Could not found contant: %v. Is it not present?", id)
+		log.Println(errMsg)
+		http.Error(w, errMsg, http.StatusGone)
+		return
+	}
+	
+	cont.Id = contantID
+	m[contantID] = cont
 
 }
 
 
 
-// func getContantsHandler(w http.ResponseWriter, r *http.Request) {
-// 	contList := make([]contact, 0)
-// 	searchKey := r.URL.Query().Get("search")
-// 	for _, cont := range m {
-// 		if searchKey != "" {
-// 			if strings.Contains(cont.Name, searchKey) {
-// 				contList = append(contList, cont)
-// 			}
-// 		} else {
-// 			contList = append(contList, cont)
-// 		}
-// 	}
-// 	data, _ := json.Marshal(contList)
-// 	w.Header().Set("Content-Type", "application/json")
-// 	w.Write(data)
-// }
+func getContantsHandler(w http.ResponseWriter, r *http.Request) {
+	contList := make([]contact, 0)
+	searchKey := r.URL.Query().Get("search")
+	for _, cont := range m {
+		if searchKey != "" {
+			if strings.Contains(cont.Name, searchKey) {
+				contList = append(contList, cont)
+			}
+		} else {
+			contList = append(contList, cont)
+		}
+	}
+	data, _ := json.Marshal(contList)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(data)
+}
 
 func postContantsHandler(w http.ResponseWriter, r *http.Request) {
 	var cont contact
