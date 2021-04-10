@@ -7,7 +7,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var m = make(map[int]contact)
@@ -40,8 +44,8 @@ func getByIdContantsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusGone)
 		return
 	}
-	
-	 data, _ := json.Marshal(cont)
+
+	data, _ := json.Marshal(cont)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(data)
 }
@@ -71,13 +75,11 @@ func putContantsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, errMsg, http.StatusGone)
 		return
 	}
-	
-	cont.Id = contantID
+
+	// cont.Id = contantID
 	m[contantID] = cont
 
 }
-
-
 
 func getContantsHandler(w http.ResponseWriter, r *http.Request) {
 	contList := make([]contact, 0)
@@ -105,9 +107,27 @@ func postContantsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := len(m) + 1
-	cont.Id = id
-	m[id] = cont
+	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://prithvi:prithvi123@cluster0.rmlet.mongodb.net/?retryWrites=true&w=majority"))
+	if err != nil {
+		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = client.Connect(r.Context())
+	if err != nil {
+		log.Fatal(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer client.Disconnect(r.Context())
+
+	contactDB := client.Database("contact")
+	companyColl := contactDB.Collection("companies")
+
+	cont.Id = primitive.NewObjectID()
+	companyColl.InsertOne(r.Context(), cont)
+
 }
 
 func deleteContantsHandler(w http.ResponseWriter, r *http.Request) {
@@ -133,9 +153,9 @@ func deleteContantsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type contact struct {
-	Id          int      `json:"id"`
-	Name        string   `json:"name"`
-	Address     string   `json:"address"`
-	PhoneNumber []int    `json:"phone_number"`
-	Owners      []string `json:"owners"`
+	Id          primitive.ObjectID `json:"id" bson:"_id"`
+	Name        string             `json:"name" bson:"name"`
+	Address     string             `json:"address" bson:"address"`
+	PhoneNumber []int              `json:"phone_number" bson:"phone_number"`
+	Owners      []string           `json:"owners" bson:"owners"`
 }
