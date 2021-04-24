@@ -37,12 +37,10 @@ func GetContantsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	writeJSON(w, data)
 }
 
 func PutContantsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	id := params["id"]
 	var cont dto.Contact
@@ -52,17 +50,17 @@ func PutContantsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = service.PutContact(r.Context(), cont, id)
+	err = service.PutContact(r.Context(), id, cont)
 
 	if err != nil {
 		log.Println("Internal error", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	w.Header().Set("Content-Type", "application/json")
 }
 func DeleteContantsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+
 	params := mux.Vars(r)
 	id := params["id"]
 
@@ -73,10 +71,10 @@ func DeleteContantsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func GetByIdContantsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	id := params["id"]
 	data, err := service.GetByIdContantsHandler(r.Context(), id)
@@ -85,6 +83,16 @@ func GetByIdContantsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	writeJSON(w, data)
+}
+
+func writeJSON(w http.ResponseWriter, records interface{}) {
 	w.Header().Set("Content-Type", "application/json")
+	data, err := json.Marshal(records)
+	if err != nil {
+		log.Println("Error while getting TODO List", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 	w.Write(data)
 }

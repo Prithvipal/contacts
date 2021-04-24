@@ -2,7 +2,6 @@ package dal
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/Prithvipal/phone-dir/entity"
@@ -26,11 +25,11 @@ func SaveContact(ctx context.Context, cont entity.Contact) error {
 	return err
 }
 
-func GetContact(ctx context.Context) ([]byte, error) {
+func GetContact(ctx context.Context) (contacts []entity.Contact, err error) {
 
 	client, err := connect(ctx)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer client.Disconnect(ctx)
 
@@ -39,19 +38,17 @@ func GetContact(ctx context.Context) ([]byte, error) {
 
 	cursor, err := companyColl.Find(ctx, bson.M{})
 	if err != nil {
-		return nil, err
+		return
 	}
-	var cont []entity.Contact
 	defer cursor.Close(ctx)
-	if err = cursor.All(ctx, &cont); err != nil {
-		return nil, err
+	if err = cursor.All(ctx, &contacts); err != nil {
+		return
 	}
-	data, _ := json.Marshal(cont)
 
-	return data, nil
+	return
 }
 
-func PutContact(ctx context.Context, cont entity.Contact, id string) error {
+func PutContact(ctx context.Context, id string, cont entity.Contact) error {
 
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -95,23 +92,21 @@ func DeleteContact(ctx context.Context, id string) error {
 	return err
 
 }
-func GetByIdContantsHandler(ctx context.Context, id string) ([]byte, error) {
+func GetByIdContantsHandler(ctx context.Context, id string) (contact entity.Contact, err error) {
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	client, err := connect(ctx)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer client.Disconnect(ctx)
 
 	contactDB := client.Database("contact")
 	companyColl := contactDB.Collection("companies")
-	var cont bson.M
-	err = companyColl.FindOne(ctx, bson.M{"_id": objID}).Decode(&cont)
-	data, _ := json.Marshal(cont)
-	return data, err
+	err = companyColl.FindOne(ctx, bson.M{"_id": objID}).Decode(&contact)
+	return
 
 }
