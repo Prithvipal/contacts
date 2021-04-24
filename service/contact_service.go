@@ -52,6 +52,7 @@ func convertToContactEntity(cont dto.Contact) (contact entity.Contact) {
 }
 
 func convertToContactDto(cont entity.Contact) (contact dto.Contact) {
+	contact.Id=cont.Id.Hex()
 	contact.Address = cont.Address
 	contact.Name = cont.Name
 	contact.Owners = cont.Owners
