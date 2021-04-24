@@ -1,2 +1,2 @@
-# phone-directory
+# Contacts
 this is my first commit
