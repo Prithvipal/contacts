@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -29,7 +30,9 @@ func PostContantsHandler(w http.ResponseWriter, r *http.Request) {
 
 func GetContantsHandler(w http.ResponseWriter, r *http.Request) {
 
-	data, err := service.GetContact(r.Context())
+	searchParam := r.URL.Query().Get("search")
+	fmt.Println(searchParam)
+	data, err := service.GetContact(r.Context(), searchParam)
 
 	if err != nil {
 		log.Println("Internal error", err.Error())
