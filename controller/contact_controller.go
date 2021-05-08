@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -31,9 +30,13 @@ func PostContantsHandler(w http.ResponseWriter, r *http.Request) {
 func GetContantsHandler(w http.ResponseWriter, r *http.Request) {
 
 	searchParam := r.URL.Query().Get("search")
-	fmt.Println(searchParam)
-	data, err := service.GetContact(r.Context(), searchParam)
-
+	var data []dto.Contact
+	var err error
+	if searchParam != "" {
+		data, err = service.FindNameContains(r.Context(), searchParam)
+	} else {
+		data, err = service.GetContact(r.Context())
+	}
 	if err != nil {
 		log.Println("Internal error", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)

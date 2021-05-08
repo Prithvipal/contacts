@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Prithvipal/phone-dir/dal"
 	"github.com/Prithvipal/phone-dir/dto"
@@ -13,8 +14,22 @@ func SaveContact(ctx context.Context, cont dto.Contact) error {
 	return dal.SaveContact(ctx, contact)
 }
 
-func GetContact(ctx context.Context, searchParam string) (contacts []dto.Contact, err error) {
-	conts, err := dal.GetContact(ctx, searchParam)
+func GetContact(ctx context.Context) (contacts []dto.Contact, err error) {
+	conts, err := dal.GetContact(ctx)
+	if err != nil {
+		return
+	}
+	for _, cont := range conts {
+		contact := convertToContactDto(cont)
+		contacts = append(contacts, contact)
+	}
+	return contacts, nil
+
+}
+
+func FindNameContains(ctx context.Context, searchParam string) (contacts []dto.Contact, err error) {
+	fmt.Println("in service")
+	conts, err := dal.FindNameContains(ctx, searchParam)
 	if err != nil {
 		return
 	}

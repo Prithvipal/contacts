@@ -25,7 +25,7 @@ func SaveContact(ctx context.Context, cont entity.Contact) error {
 	return err
 }
 
-func GetContact(ctx context.Context, searchParam string) (contacts []entity.Contact, err error) {
+func GetContact(ctx context.Context) (contacts []entity.Contact, err error) {
 
 	client, err := connect(ctx)
 	if err != nil {
@@ -36,8 +36,33 @@ func GetContact(ctx context.Context, searchParam string) (contacts []entity.Cont
 	contactDB := client.Database("contact")
 	companyColl := contactDB.Collection("companies")
 
-	filter := bson.M{}
-	cursor, err := companyColl.Find(ctx, filter)
+	cursor, err := companyColl.Find(ctx, bson.M{})
+	if err != nil {
+		return
+	}
+	defer cursor.Close(ctx)
+	if err = cursor.All(ctx, &contacts); err != nil {
+		return
+	}
+
+	return
+}
+func FindNameContains(ctx context.Context, searchParam string) (contacts []entity.Contact, err error) {
+	fmt.Println("in function")
+	client, err := connect(ctx)
+	if err != nil {
+		return
+	}
+	defer client.Disconnect(ctx)
+
+	contactDB := client.Database("contact")
+	companyColl := contactDB.Collection("companies")
+	cursor, err := companyColl.Find(ctx, bson.M{
+		"name": primitive.Regex{
+			Pattern: searchParam,
+			Options: "i",
+		},
+	})
 	if err != nil {
 		return
 	}
