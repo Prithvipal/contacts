@@ -30,13 +30,7 @@ func PostContantsHandler(w http.ResponseWriter, r *http.Request) {
 func GetContantsHandler(w http.ResponseWriter, r *http.Request) {
 
 	searchParam := r.URL.Query().Get("search")
-	var data []dto.Contact
-	var err error
-	if searchParam != "" {
-		data, err = service.FindNameContains(r.Context(), searchParam)
-	} else {
-		data, err = service.GetContact(r.Context())
-	}
+	data, err := service.GetContact(r.Context(), searchParam)
 	if err != nil {
 		log.Println("Internal error", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)

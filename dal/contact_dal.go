@@ -48,7 +48,6 @@ func GetContact(ctx context.Context) (contacts []entity.Contact, err error) {
 	return
 }
 func FindNameContains(ctx context.Context, searchParam string) (contacts []entity.Contact, err error) {
-	fmt.Println("in function")
 	client, err := connect(ctx)
 	if err != nil {
 		return
